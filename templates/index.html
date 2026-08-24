@@ -89,25 +89,25 @@
 </head>
 <body>
     <div class="container">
-        <div class="flag">🇨🇲</div>
+        <div class="flag">🇨AMEROUN</div>
         <h1>ISG-ISSAD University Results Portal</h1>
         <p class="subtitle">{{ t('select_role') }}</p>
         
         <div class="login-options">
             <a href="/login" class="option-card">
-                <span class="icon">🎓</span>
+                <span class="icon">ETUDIANT</span>
                 <h2>{{ t('student_login') }}</h2>
                 <p>{{ t('student_name') }}</p>
                 <span class="badge">{{ t('default_password_student') }}</span>
             </a>
             <a href="/login" class="option-card">
-                <span class="icon">👨‍🏫</span>
+                <span class="icon"></span>
                 <h2>{{ t('admin_login') }}</h2>
                 <p>{{ t('admin_username') }}</p>
                 <span class="badge">{{ t('default_password_admin') }}</span>
             </a>
             <a href="/login" class="option-card">
-                <span class="icon">⭐</span>
+                <span class="icon"></span>
                 <h2>{{ t('super_admin_login') }}</h2>
                 <p>{{ t('super_admin') }}</p>
                 <span class="badge">{{ t('default_password_super') }}</span>
@@ -115,7 +115,7 @@
         </div>
         
         <div class="language-switcher">
-            <span>🌐 {{ t('language') }}: </span>
+            <span> {{ t('language') }}: </span>
             <a href="/set_language/en" class="{% if session.lang == 'en' %}active{% endif %}">{{ t('english') }}</a>
             <span class="separator">|</span>
             <a href="/set_language/fr" class="{% if session.lang == 'fr' %}active{% endif %}">{{ t('french') }}</a>
