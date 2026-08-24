@@ -34,9 +34,16 @@ def get_mention(score):
     else:
         return "Ajourné"
 
-def get_text(key):
+def get_text(key, **kwargs):
+    """Fonction de traduction universelle avec remplacement de variables"""
     lang = session.get('lang', 'en')
-    return TRANSLATIONS.get(lang, {}).get(key, TRANSLATIONS['en'].get(key, key))
+    text = TRANSLATIONS.get(lang, {}).get(key, TRANSLATIONS['en'].get(key, key))
+    if kwargs:
+        try:
+            text = text.format(**kwargs)
+        except KeyError:
+            pass
+    return text
 
 def calculate_gpa(student_id):
     conn = sqlite3.connect(get_db_path())
@@ -230,7 +237,7 @@ def admin_required(func):
         if not user:
             return redirect(url_for('login'))
         if user['user_type'] not in ['admin', 'super_admin']:
-            return "Access denied. Administrator privileges required.", 403
+            return get_text('access_denied'), 403
         return func(*args, **kwargs)
     return wrapper
 
@@ -243,7 +250,7 @@ def super_admin_required(func):
         if not user:
             return redirect(url_for('login'))
         if user['user_type'] != 'super_admin':
-            return "Access denied. Super administrator privileges required.", 403
+            return get_text('access_denied'), 403
         return func(*args, **kwargs)
     return wrapper
 
@@ -384,7 +391,7 @@ def manage_admins():
                 conn.commit()
                 log_audit(int(user['user_id']), 'super_admin', 'CREATE_SUPER_ADMIN', 'super_admin', c.lastrowid, f"Created super admin: {username}")
                 conn.close()
-                return render_template('manage_admins.html', success=f'Super Administrator "{username}" created successfully!')
+                return render_template('manage_admins.html', success=get_text('admin_created'))
             else:
                 c.execute('''INSERT INTO administrators (username, password_hash, school_name, region, email, created_at, created_by)
                              VALUES (?, ?, ?, ?, ?, ?, ?)''',
@@ -392,7 +399,7 @@ def manage_admins():
                 conn.commit()
                 log_audit(int(user['user_id']), 'super_admin', 'CREATE_ADMIN', 'administrators', c.lastrowid, f"Created admin: {username}")
                 conn.close()
-                return render_template('manage_admins.html', success=f'Administrator "{username}" created successfully!')
+                return render_template('manage_admins.html', success=get_text('admin_created'))
         except sqlite3.IntegrityError:
             conn.close()
             return render_template('manage_admins.html', error='Username already exists')
@@ -430,7 +437,7 @@ def delete_super_admin(admin_id):
     admin = c.execute("SELECT username FROM super_admin WHERE id = ?", (admin_id,)).fetchone()
     if admin and admin[0] == 'superadmin':
         conn.close()
-        return render_template('manage_admins.html', error='Cannot delete the main Super Administrator!')
+        return render_template('manage_admins.html', error=get_text('cannot_delete_super_admin'))
     
     if admin:
         c.execute("DELETE FROM super_admin WHERE id = ?", (admin_id,))
@@ -506,7 +513,7 @@ def manage_students():
         conn.commit()
         log_audit(int(user['user_id']), 'admin', 'CREATE_STUDENT', 'students', c.lastrowid, f"Created student: {full_name}")
         conn.close()
-        return render_template('manage_students.html', success=f'Student created successfully. Student ID: {student_number}', filieres=filieres)
+        return render_template('manage_students.html', success=get_text('student_created_with_id', id=student_number), filieres=filieres)
     
     students = c.execute("SELECT id, full_name, student_number, class_name, filiere_id, parent_phone, created_at FROM students WHERE school_id = ? ORDER BY full_name", (school_id,)).fetchall()
     conn.close()
@@ -553,7 +560,7 @@ def manage_filieres():
             conn.commit()
             log_audit(int(user['user_id']), 'admin', 'CREATE_FILIERE', 'filieres', c.lastrowid, f"Created filiere: {name}")
             conn.close()
-            return render_template('manage_filieres.html', success='Filiere created successfully')
+            return render_template('manage_filieres.html', success=get_text('filiere_created'))
         except sqlite3.IntegrityError:
             conn.close()
             return render_template('manage_filieres.html', error='Filiere code already exists')
@@ -606,7 +613,7 @@ def manage_subjects():
             conn.commit()
             log_audit(int(user['user_id']), 'admin', 'CREATE_SUBJECT', 'subjects', c.lastrowid, f"Created subject: {name}")
             conn.close()
-            return render_template('manage_subjects.html', success='Subject created successfully', filieres=filieres)
+            return render_template('manage_subjects.html', success=get_text('subject_created'), filieres=filieres)
         except sqlite3.IntegrityError:
             conn.close()
             return render_template('manage_subjects.html', error='Subject code already exists', filieres=filieres)
@@ -668,13 +675,13 @@ def manage_grades():
         
         if score < 0 or score > 20:
             conn.close()
-            return render_template('manage_grades.html', error='Score must be between 0 and 20', students=students, subjects=subjects)
+            return render_template('manage_grades.html', error=get_text('score_range'), students=students, subjects=subjects)
         
         c.execute("SELECT id FROM students WHERE full_name = ? AND school_id = ?", (student_name, school_id))
         student = c.fetchone()
         if not student:
             conn.close()
-            return render_template('manage_grades.html', error='Student not found. Please create the student first.', students=students, subjects=subjects)
+            return render_template('manage_grades.html', error=get_text('student_not_found_grade'), students=students, subjects=subjects)
         
         student_id = student[0]
         
@@ -682,7 +689,7 @@ def manage_grades():
                  (student_id, subject_id, term, year))
         if c.fetchone():
             conn.close()
-            return render_template('manage_grades.html', error='Grade already exists for this student, subject, term, and year', students=students, subjects=subjects)
+            return render_template('manage_grades.html', error=get_text('duplicate_grade'), students=students, subjects=subjects)
         
         c.execute('''INSERT INTO grades (student_id, subject_id, score, term, year, uploaded_by, uploaded_at, verified)
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
@@ -693,7 +700,7 @@ def manage_grades():
         log_audit(int(user['user_id']), 'admin', 'UPLOAD_GRADE', 'grades', c.lastrowid, f"Uploaded grade for {student_name}: {score}/20 ({mention})")
         
         conn.close()
-        return render_template('manage_grades.html', success=f'Grade uploaded successfully. Score: {score}/20 - Mention: {mention}', students=students, subjects=subjects)
+        return render_template('manage_grades.html', success=get_text('grade_uploaded_with_mention', score=score, mention=mention), students=students, subjects=subjects)
     
     conn.close()
     return render_template('manage_grades.html', students=students, subjects=subjects)
@@ -711,14 +718,14 @@ def bulk_upload():
     
     if request.method == 'POST':
         if 'csv_file' not in request.files:
-            return render_template('bulk_upload.html', error='No file uploaded')
+            return render_template('bulk_upload.html', error=get_text('no_file'))
         
         file = request.files['csv_file']
         if file.filename == '':
-            return render_template('bulk_upload.html', error='No file selected')
+            return render_template('bulk_upload.html', error=get_text('no_file_selected'))
         
         if not file.filename.endswith('.csv'):
-            return render_template('bulk_upload.html', error='Please upload a valid CSV file')
+            return render_template('bulk_upload.html', error=get_text('invalid_csv'))
         
         try:
             stream = io.StringIO(file.stream.read().decode('UTF8'), newline=None)
@@ -771,9 +778,9 @@ def bulk_upload():
             conn.close()
             
             if errors:
-                return render_template('bulk_upload.html', partial_success=f'{successes} grades uploaded successfully', errors=errors)
+                return render_template('bulk_upload.html', partial_success=get_text('grades_uploaded_count', count=successes), errors=errors)
             else:
-                return render_template('bulk_upload.html', success='All grades uploaded successfully!')
+                return render_template('bulk_upload.html', success=get_text('upload_success'))
                 
         except Exception as e:
             conn.close()
@@ -915,7 +922,7 @@ def student_change_password():
         confirm_password = request.form['confirm_password']
         
         if new_password != confirm_password:
-            return render_template('change_password.html', error='New passwords do not match')
+            return render_template('change_password.html', error=get_text('password_mismatch'))
         
         db_path = get_db_path()
         conn = sqlite3.connect(db_path)
@@ -926,13 +933,13 @@ def student_change_password():
         
         if stored_hash != current_password:
             conn.close()
-            return render_template('change_password.html', error='Current password is incorrect')
+            return render_template('change_password.html', error=get_text('incorrect_password'))
         
         c.execute("UPDATE students SET password_hash = ? WHERE id = ?", (hash_password(new_password), user['user_id']))
         conn.commit()
         conn.close()
         
-        return render_template('change_password.html', success='Password changed successfully')
+        return render_template('change_password.html', success=get_text('password_changed'))
     
     return render_template('change_password.html')
 
