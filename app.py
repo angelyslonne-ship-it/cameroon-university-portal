@@ -15,7 +15,7 @@ app.permanent_session_lifetime = timedelta(hours=2)
 
 def get_db_path():
     if os.environ.get('RENDER'):
-        return '/var/data/university_portal.db'
+        return '/tmp/university_portal.db'
     else:
         return 'university_portal.db'
 
