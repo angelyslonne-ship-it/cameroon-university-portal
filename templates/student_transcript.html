@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Transcript - {{ t('app_title') }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #0d47a1, #1565c0);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .header h1 { font-size: 24px; }
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .header .user-info span { opacity: 0.9; font-size: 14px; }
+        .header .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .header .logout-btn:hover { background: rgba(255,255,255,0.3); }
+        .nav {
+            background: white;
+            padding: 12px 40px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        .nav a {
+            color: #333;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            padding: 5px 0;
+            border-bottom: 3px solid transparent;
+            transition: border-color 0.3s;
+        }
+        .nav a:hover, .nav a.active {
+            border-bottom-color: #1565c0;
+            color: #0d47a1;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+        .section h2 {
+            color: #0d47a1;
+            font-size: 20px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table th {
+            text-align: left;
+            padding: 12px 10px;
+            background: #f0f2f5;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+        .student-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #0d47a1;
+        }
+        .student-header h1 {
+            color: #0d47a1;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        .student-header p {
+            color: #555;
+            font-size: 15px;
+            margin: 3px 0;
+        }
+        .transcript-footer {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .transcript-footer .gpa-box {
+            background: #e3f2fd;
+            padding: 10px 20px;
+            border-radius: 8px;
+        }
+        .transcript-footer .gpa-box strong {
+            color: #0d47a1;
+        }
+        .mention-badge {
+            display: inline-block;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .mention-tb { background: #1b5e20; color: white; }
+        .mention-bien { background: #2e7d32; color: white; }
+        .mention-ab { background: #f9a825; color: #333; }
+        .mention-passable { background: #ff8f00; color: white; }
+        .mention-ajourne { background: #c62828; color: white; }
+        .score-pass { color: #2e7d32; font-weight: 600; }
+        .score-fail { color: #c62828; font-weight: 600; }
+        .print-btn {
+            padding: 10px 25px;
+            background: #1565c0;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .print-btn:hover { background: #0d47a1; }
+        .language-switcher {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .language-switcher a {
+            color: #666;
+            text-decoration: none;
+            font-size: 13px;
+            padding: 2px 10px;
+        }
+        .language-switcher a.active {
+            background: #1565c0;
+            color: white;
+            border-radius: 12px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: #1565c0;
+            text-decoration: none;
+        }
+        .back-link:hover { text-decoration: underline; }
+        .empty-message { color: #999; text-align: center; padding: 20px; }
+        @media print {
+            .header, .nav, .print-btn, .language-switcher, .back-link, .logout-btn { display: none; }
+            .section { box-shadow: none; border: 1px solid #ddd; }
+        }
+        @media (max-width: 600px) {
+            .header { padding: 15px 20px; flex-direction: column; gap: 10px; text-align: center; }
+            .nav { padding: 10px 20px; justify-content: center; }
+            table { font-size: 12px; }
+            table th, table td { padding: 8px 5px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Academic Transcript</h1>
+        <div class="user-info">
+            <span>Welcome, {{ session.username }}</span>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </div>
+    
+    <div class="nav">
+        <a href="/student/dashboard">Dashboard</a>
+        <a href="/student/transcript" class="active">My Transcript</a>
+        <a href="/student/change_password">Change Password</a>
+    </div>
+    
+    <div class="container">
+        <div class="language-switcher">
+            <span>Language:</span>
+            <a href="/set_language/en" class="{% if session.lang == 'en' %}active{% endif %}">English</a>
+            <a href="/set_language/fr" class="{% if session.lang == 'fr' %}active{% endif %}">Francais</a>
+        </div>
+        
+        <div class="section" id="transcript">
+            <div class="student-header">
+                <h1>ISG-ISSAD University</h1>
+                <h2 style="color: #0d47a1; margin: 5px 0;">Academic Transcript</h2>
+                <p><strong>Student Name:</strong> {{ student[1] }}</p>
+                <p><strong>Student Number:</strong> {{ student[4] }}</p>
+                <p><strong>Class:</strong> {{ student[3] }}</p>
+            </div>
+            
+            {% if grades %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Score</th>
+                        <th>Mention</th>
+                        <th>Coefficient</th>
+                        <th>Term</th>
+                        <th>Year</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for grade in grades %}
+                    <tr>
+                        <td>{{ grade[0] }}</td>
+                        <td>{{ grade[1] }}/20</td>
+                        <td>
+                            {% if grade[1] >= 16 %}Tres Bien
+                            {% elif grade[1] >= 14 %}Bien
+                            {% elif grade[1] >= 12 %}Assez Bien
+                            {% elif grade[1] >= 10 %}Passable
+                            {% else %}Ajoure{% endif %}
+                        </td>
+                        <td>{{ grade[4] }}</td>
+                        <td>{{ grade[2] }}</td>
+                        <td>{{ grade[3] }}</td>
+                        <td>
+                            <span class="{% if grade[1] >= 10 %}score-pass{% else %}score-fail{% endif %}">
+                                {% if grade[1] >= 10 %}Pass{% else %}Fail{% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div class="transcript-footer">
+                <div>
+                    <p><strong>Total Subjects:</strong> {{ total_subjects }}</p>
+                    <p><strong>Overall Average:</strong> {{ avg_score }}/20</p>
+                </div>
+                <div class="gpa-box">
+                    <p><strong>GPA:</strong> {{ gpa }}</p>
+                    <p>
+                        <strong>Mention:</strong>
+                        <span class="mention-badge 
+                            {% if mention == 'Très Bien' %}mention-tb
+                            {% elif mention == 'Bien' %}mention-bien
+                            {% elif mention == 'Assez Bien' %}mention-ab
+                            {% elif mention == 'Passable' %}mention-passable
+                            {% else %}mention-ajourne{% endif %}">
+                            {{ mention }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+            {% else %}
+            <p class="empty-message">No grades found for this student.</p>
+            {% endif %}
+        </div>
+        
+        <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+            <button class="print-btn" onclick="window.print()">Print Transcript</button>
+            <a href="/student/dashboard" class="back-link">← Back to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html>

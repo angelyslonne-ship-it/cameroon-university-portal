@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Log - {{ t('app_title') }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #0d47a1, #1565c0);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .header h1 { font-size: 24px; }
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .header .user-info span { opacity: 0.9; font-size: 14px; }
+        .header .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .header .logout-btn:hover { background: rgba(255,255,255,0.3); }
+        .nav {
+            background: white;
+            padding: 12px 40px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        .nav a {
+            color: #333;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            padding: 5px 0;
+            border-bottom: 3px solid transparent;
+            transition: border-color 0.3s;
+        }
+        .nav a:hover, .nav a.active {
+            border-bottom-color: #1565c0;
+            color: #0d47a1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+        .section h2 {
+            color: #0d47a1;
+            font-size: 20px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        table th {
+            text-align: left;
+            padding: 12px 10px;
+            background: #f0f2f5;
+            font-weight: 600;
+            color: #333;
+        }
+        table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        table tr:hover td { background: #f8f9fa; }
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge-login { background: #e3f2fd; color: #0d47a1; }
+        .badge-logout { background: #f5f5f5; color: #616161; }
+        .badge-create { background: #e8f5e9; color: #1b5e20; }
+        .badge-delete { background: #ffebee; color: #b71c1c; }
+        .badge-upload { background: #fff3e0; color: #e65100; }
+        .badge-update { background: #e0f7fa; color: #00695c; }
+        .language-switcher {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .language-switcher a {
+            color: #666;
+            text-decoration: none;
+            font-size: 13px;
+            padding: 2px 10px;
+        }
+        .language-switcher a.active {
+            background: #1565c0;
+            color: white;
+            border-radius: 12px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: #1565c0;
+            text-decoration: none;
+        }
+        .back-link:hover { text-decoration: underline; }
+        .empty-message { color: #999; text-align: center; padding: 20px; }
+        .user-type-admin { color: #0d47a1; font-weight: 600; }
+        .user-type-super { color: #1a237e; font-weight: 600; }
+        .user-type-student { color: #e65100; font-weight: 600; }
+        @media (max-width: 768px) {
+            .header { padding: 15px 20px; flex-direction: column; gap: 10px; text-align: center; }
+            .nav { padding: 10px 20px; justify-content: center; }
+            table { font-size: 12px; }
+            table th, table td { padding: 6px 4px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Audit Log</h1>
+        <div class="user-info">
+            <span>Welcome, {{ session.username }}</span>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </div>
+    
+    <div class="nav">
+        <a href="/super_admin/dashboard">Dashboard</a>
+        <a href="/super_admin/admins">Manage Administrators</a>
+        <a href="/super_admin/audit_log" class="active">Audit Log</a>
+    </div>
+    
+    <div class="container">
+        <div class="language-switcher">
+            <span>Language:</span>
+            <a href="/set_language/en" class="{% if session.lang == 'en' %}active{% endif %}">English</a>
+            <a href="/set_language/fr" class="{% if session.lang == 'fr' %}active{% endif %}">Francais</a>
+        </div>
+        
+        <div class="section">
+            <h2>Audit Log</h2>
+            {% if logs %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>User ID</th>
+                        <th>User Type</th>
+                        <th>Action</th>
+                        <th>Details</th>
+                        <th>IP Address</th>
+                        <th>Date & Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log[0] }}</td>
+                        <td>{{ log[1] }}</td>
+                        <td>
+                            {% if log[2] == 'super_admin' %}
+                                <span class="user-type-super">Super Admin</span>
+                            {% elif log[2] == 'admin' %}
+                                <span class="user-type-admin">Admin</span>
+                            {% else %}
+                                <span class="user-type-student">Student</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if log[3] == 'LOGIN' %}badge-login
+                                {% elif log[3] == 'LOGOUT' %}badge-logout
+                                {% elif log[3] == 'CREATE_ADMIN' or log[3] == 'CREATE_STUDENT' or log[3] == 'CREATE_FILIERE' or log[3] == 'CREATE_SUBJECT' %}badge-create
+                                {% elif log[3] == 'DELETE_ADMIN' or log[3] == 'DELETE_STUDENT' or log[3] == 'DELETE_FILIERE' or log[3] == 'DELETE_SUBJECT' %}badge-delete
+                                {% elif log[3] == 'UPLOAD_GRADE' %}badge-upload
+                                {% else %}badge-update{% endif %}">
+                                {{ log[3] }}
+                            </span>
+                        </td>
+                        <td>{{ log[5] }}</td>
+                        <td>{{ log[6] }}</td>
+                        <td>{{ log[7] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-message">No records found</p>
+            {% endif %}
+        </div>
+        
+        <a href="/super_admin/dashboard" class="back-link">← Back</a>
+    </div>
+</body>
+</html>

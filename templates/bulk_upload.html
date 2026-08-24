@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Upload - {{ t('app_title') }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #0d47a1, #1565c0);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .header h1 { font-size: 24px; }
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .header .user-info span { opacity: 0.9; font-size: 14px; }
+        .header .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .header .logout-btn:hover { background: rgba(255,255,255,0.3); }
+        .nav {
+            background: white;
+            padding: 12px 40px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        .nav a {
+            color: #333;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            padding: 5px 0;
+            border-bottom: 3px solid transparent;
+            transition: border-color 0.3s;
+        }
+        .nav a:hover, .nav a.active {
+            border-bottom-color: #1565c0;
+            color: #0d47a1;
+        }
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+        .section h2 {
+            color: #0d47a1;
+            font-size: 20px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .form-group { margin: 15px 0; }
+        label { display: block; font-weight: 600; color: #333; margin-bottom: 5px; font-size: 14px; }
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus { border-color: #1565c0; outline: none; }
+        .btn {
+            padding: 12px 30px;
+            background: #1565c0;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn:hover { background: #0d47a1; }
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #2e7d32;
+            margin-bottom: 15px;
+        }
+        .error {
+            background: #ffebee;
+            color: #d32f2f;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #d32f2f;
+            margin-bottom: 15px;
+        }
+        .partial {
+            background: #fff3e0;
+            color: #e65100;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #e65100;
+            margin-bottom: 15px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: #1565c0;
+            text-decoration: none;
+        }
+        .back-link:hover { text-decoration: underline; }
+        .language-switcher {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .language-switcher a {
+            color: #666;
+            text-decoration: none;
+            font-size: 13px;
+            padding: 2px 10px;
+        }
+        .language-switcher a.active {
+            background: #1565c0;
+            color: white;
+            border-radius: 12px;
+        }
+        .info-box {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #1565c0;
+            margin-bottom: 20px;
+        }
+        .info-box h3 {
+            color: #0d47a1;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        .info-box p {
+            color: #555;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .code-block {
+            background: #f5f5f5;
+            padding: 12px 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            overflow-x: auto;
+        }
+        .error-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #ffebee;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+        .error-list li {
+            color: #d32f2f;
+            list-style: none;
+            padding: 4px 0;
+            font-size: 13px;
+            border-bottom: 1px solid #ffcdd2;
+        }
+        .error-list li:last-child { border-bottom: none; }
+        @media (max-width: 600px) {
+            .header { padding: 15px 20px; flex-direction: column; gap: 10px; text-align: center; }
+            .nav { padding: 10px 20px; justify-content: center; }
+            .btn { width: 100%; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Bulk Upload Grades</h1>
+        <div class="user-info">
+            <span>Welcome, {{ session.username }}</span>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </div>
+    
+    <div class="nav">
+        <a href="/admin/dashboard">Dashboard</a>
+        <a href="/admin/students">Manage Students</a>
+        <a href="/admin/filieres">Manage Programs</a>
+        <a href="/admin/subjects">Manage Subjects</a>
+        <a href="/admin/grades">Upload Grades</a>
+        <a href="/admin/bulk_upload" class="active">Bulk Upload</a>
+        <a href="/admin/reports">Reports</a>
+    </div>
+    
+    <div class="container">
+        <div class="language-switcher">
+            <span>Language:</span>
+            <a href="/set_language/en" class="{% if session.lang == 'en' %}active{% endif %}">English</a>
+            <a href="/set_language/fr" class="{% if session.lang == 'fr' %}active{% endif %}">Francais</a>
+        </div>
+        
+        <div class="section">
+            <h2>Bulk Upload Grades</h2>
+            
+            {% if success %}
+            <div class="success">{{ success }}</div>
+            {% endif %}
+            {% if error %}
+            <div class="error">{{ error }}</div>
+            {% endif %}
+            {% if partial_success %}
+            <div class="partial">{{ partial_success }}</div>
+            {% endif %}
+            
+            <div class="info-box">
+                <h3>CSV Format Requirements</h3>
+                <p>Your CSV file must have the following columns in this exact order:</p>
+                <div class="code-block">student_name,subject,score,term,year</div>
+                <p style="margin-top: 8px;"><strong>Example:</strong></p>
+                <div class="code-block">Jean Kamga,Mathematics,14,First,2024<br>Marie Ngoa,Physics,12,First,2024<br>Paul Essomba,English,16,First,2024</div>
+                <p style="margin-top: 8px; color: #666; font-size: 13px;">
+                    <strong>Requirements:</strong>
+                    <br>- Score must be between 0 and 20
+                    <br>- Student must exist in the system
+                    <br>- Subject must exist in the system
+                    <br>- Term must be First, Second, or Third
+                </p>
+            </div>
+            
+            <form method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Upload CSV File</label>
+                    <input type="file" name="csv_file" accept=".csv" required>
+                </div>
+                <button type="submit" class="btn">Upload CSV</button>
+            </form>
+            
+            {% if errors %}
+            <div style="margin-top: 20px;">
+                <h3 style="color: #d32f2f; font-size: 16px;">Errors Encountered</h3>
+                <div class="error-list">
+                    {% for error in errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <a href="/admin/dashboard" class="back-link">← Back</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Administrators - ISG-ISSAD</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #0d47a1, #1565c0);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+flex-wrap: wrap;
+        }
+        .header h1 { font-size: 24px; }
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .header .user-info span { opacity: 0.9; font-size: 14px; }
+        .header .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .header .logout-btn:hover { background: rgba(255,255,255,0.3); }
+        .nav {
+            background: white;
+            padding: 12px 40px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        .nav a {
+            color: #333;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            padding: 5px 0;
+            border-bottom: 3px solid transparent;
+            transition: border-color 0.3s;
+        }
+        .nav a:hover, .nav a.active {
+            border-bottom-color: #1565c0;
+            color: #0d47a1;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+        .section h2 {
+            color: #0d47a1;
+            font-size: 20px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .form-group { margin: 15px 0; }
+        label { display: block; font-weight: 600; color: #333; margin-bottom: 5px; font-size: 14px; }
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus { border-color: #1565c0; outline: none; }
+        .btn {
+            padding: 12px 30px;
+            background: #1565c0;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn:hover { background: #0d47a1; }
+        .btn-danger {
+            background: #d32f2f;
+            padding: 5px 12px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: none;
+        }
+        .btn-danger:hover { background: #b71c1c; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        table th {
+            text-align: left;
+            padding: 12px 10px;
+            background: #f0f2f5;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #2e7d32;
+            margin-bottom: 15px;
+        }
+        .error {
+            background: #ffebee;
+            color: #d32f2f;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #d32f2f;
+            margin-bottom: 15px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: #1565c0;
+            text-decoration: none;
+        }
+        .back-link:hover { text-decoration: underline; }
+        .language-switcher {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .language-switcher a {
+            color: #666;
+            text-decoration: none;
+            font-size: 13px;
+            padding: 2px 10px;
+        }
+        .language-switcher a.active {
+            background: #1565c0;
+            color: white;
+            border-radius: 12px;
+        }
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .empty-message { color: #999; text-align: center; padding: 20px; }
+        @media (max-width: 600px) {
+            .row { grid-template-columns: 1fr; }
+            .header { padding: 15px 20px; flex-direction: column; gap: 10px; text-align: center; }
+            .nav { padding: 10px 20px; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>ISG-ISSAD - Manage Administrators</h1>
+        <div class="user-info">
+            <span>Welcome, {{ session.username }}</span>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </div>
+    
+    <div class="nav">
+        <a href="/super_admin/dashboard">Dashboard</a>
+        <a href="/super_admin/admins" class="active">Manage Administrators</a>
+        <a href="/super_admin/audit_log">Audit Log</a>
+    </div>
+    
+    <div class="container">
+        <div class="language-switcher">
+            <span>Language:</span>
+            <a href="/set_language/en" class="{% if session.lang == 'en' %}active{% endif %}">English</a>
+            <a href="/set_language/fr" class="{% if session.lang == 'fr' %}active{% endif %}">Francais</a>
+        </div>
+        
+        <div class="section">
+            <h2>Create Administrator</h2>
+            
+            {% if success %}
+            <div class="success">{{ success }}</div>
+            {% endif %}
+            {% if error %}
+            <div class="error">{{ error }}</div>
+            {% endif %}
+            
+            <form method="POST">
+                <div class="row">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" name="username" placeholder="Administrator Username" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" name="password" placeholder="Administrator Password" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>School Name</label>
+                        <input type="text" name="school_name" placeholder="School Name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Region</label>
+                        <input type="text" name="region" placeholder="e.g., Centre, Littoral" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" placeholder="admin@school.cm">
+                </div>
+                <div class="form-group">
+                    <label>User Type</label>
+                    <select name="user_type" required>
+                        <option value="admin">Administrator</option>
+                        <option value="super_admin">Super Administrator</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Create</button>
+            </form>
+        </div>
+        
+        <div class="section">
+            <h2>Super Administrators</h2>
+            {% if super_admins %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for admin in super_admins %}
+                    <tr>
+                        <td>{{ admin[0] }}</td>
+                        <td><strong>Super Admin: {{ admin[1] }}</strong></td>
+                        <td>{{ admin[2] }}</td>
+                        <td>{{ admin[3] }}</td>
+                        <td>
+                            <a href="/super_admin/delete_super_admin/{{ admin[0] }}" class="btn-danger" onclick="return confirm('Are you sure you want to delete this Super Administrator?')">Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-message">No Super Administrators found.</p>
+            {% endif %}
+        </div>
+        
+        <div class="section">
+            <h2>All Administrators</h2>
+            {% if admins %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>School</th>
+                        <th>Region</th>
+                        <th>Email</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for admin in admins %}
+                    <tr>
+                        <td>{{ admin[0] }}</td>
+                        <td>{{ admin[1] }}</td>
+                        <td>{{ admin[2] }}</td>
+                        <td>{{ admin[3] }}</td>
+                        <td>{{ admin[4] }}</td>
+                        <td>
+                            <a href="/super_admin/delete_admin/{{ admin[0] }}" class="btn-danger" onclick="return confirm('Are you sure you want to delete this administrator?')">Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-message">No records found</p>
+            {% endif %}
+        </div>
+        
+        <a href="/super_admin/dashboard" class="back-link">← Back</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t('login') }} - {{ t('app_title') }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a3c1f, #2d5e2e);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 420px;
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            padding: 40px 35px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 { color: #1a3c1f; font-size: 26px; text-align: center; margin-bottom: 5px; }
+        .login-subtitle { text-align: center; color: #888; font-size: 14px; margin-bottom: 25px; }
+        .form-group { margin: 18px 0; }
+        label { display: block; font-weight: 600; color: #333; margin-bottom: 5px; font-size: 14px; }
+        input, select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus { border-color: #2d5e2e; outline: none; }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #2d5e2e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        button:hover { background: #1a3c1f; }
+        .error {
+            background: #ffebee;
+            color: #d32f2f;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #d32f2f;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 18px;
+            color: #2d5e2e;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        .hint { font-size: 12px; color: #999; margin-top: 5px; }
+        .radio-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin: 15px 0;
+        }
+        .radio-option {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .radio-option.selected { border-color: #2d5e2e; background: #e8f5e9; }
+        .radio-option input { display: none; }
+        .radio-option label { cursor: pointer; font-weight: 600; color: #333; margin: 0; font-size: 12px; }
+        @media (max-width: 500px) {
+            .container { padding: 25px 20px; }
+            .radio-group { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ t('login') }}</h1>
+        <p class="login-subtitle">{{ t('select_role') }}</p>
+        
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+        
+        <form method="POST">
+            <div class="radio-group" id="userTypeGroup">
+                <div class="radio-option selected" data-value="student" onclick="selectType('student')">
+                    <label>🎓 {{ t('student_login') }}</label>
+                </div>
+                <div class="radio-option" data-value="admin" onclick="selectType('admin')">
+                    <label>👨‍🏫 {{ t('admin_login') }}</label>
+                </div>
+                <div class="radio-option" data-value="super_admin" onclick="selectType('super_admin')">
+                    <label>⭐ {{ t('super_admin') }}</label>
+                </div>
+            </div>
+            
+            <input type="hidden" name="user_type" id="userType" value="student">
+            
+            <div class="form-group">
+                <label id="usernameLabel">{{ t('student_name') }}</label>
+                <input type="text" name="username" id="username" placeholder="{{ t('student_name') }}" required>
+                <div class="hint" id="usernameHint">{{ t('default_password_student') }}</div>
+            </div>
+            
+            <div class="form-group">
+                <label>{{ t('password') }}</label>
+                <input type="password" name="password" placeholder="{{ t('password_hint') }}" required>
+                <div class="hint" id="passwordHint">{{ t('default_password_student') }}</div>
+            </div>
+            
+            <button type="submit">{{ t('login') }}</button>
+        </form>
+        
+        <a href="/" class="back-link">← {{ t('back') }}</a>
+    </div>
+    
+    <script>
+        function selectType(type) {
+            document.getElementById('userType').value = type;
+            
+            document.querySelectorAll('.radio-option').forEach(function(el) {
+                el.classList.remove('selected');
+            });
+            document.querySelector('.radio-option[data-value="' + type + '"]').classList.add('selected');
+            
+            var label = document.getElementById('usernameLabel');
+            var hint = document.getElementById('usernameHint');
+            var input = document.getElementById('username');
+            var passwordHint = document.getElementById('passwordHint');
+            
+            if (type === 'student') {
+                label.textContent = '{{ t('student_name') }}';
+                hint.textContent = '{{ t('default_password_student') }}';
+                input.placeholder = '{{ t('student_name') }}';
+                passwordHint.textContent = '{{ t('default_password_student') }}';
+            } else if (type === 'admin') {
+                label.textContent = '{{ t('admin_username') }}';
+                hint.textContent = '{{ t('default_password_admin') }}';
+                input.placeholder = '{{ t('admin_username') }}';
+                passwordHint.textContent = '{{ t('default_password_admin') }}';
+            } else {
+                label.textContent = '{{ t('username') }}';
+                hint.textContent = '{{ t('default_password_super') }}';
+                input.placeholder = '{{ t('username') }}';
+                passwordHint.textContent = '{{ t('default_password_super') }}';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Dashboard - {{ t('app_title') }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #0d47a1, #1565c0);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .header h1 { font-size: 24px; }
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .header .user-info span { opacity: 0.9; font-size: 14px; }
+        .header .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .header .logout-btn:hover { background: rgba(255,255,255,0.3); }
+        .nav {
+            background: white;
+            padding: 12px 40px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        .nav a {
+            color: #333;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            padding: 5px 0;
+            border-bottom: 3px solid transparent;
+            transition: border-color 0.3s;
+        }
+        .nav a:hover, .nav a.active {
+            border-bottom-color: #1565c0;
+            color: #0d47a1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0d47a1;
+        }
+        .stat-card .label {
+            color: #888;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+        .section h2 {
+            color: #0d47a1;
+            font-size: 20px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table th {
+            text-align: left;
+            padding: 12px 10px;
+            background: #f0f2f5;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+        table tr:hover td { background: #f8f9fa; }
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+        .quick-action {
+            background: #f0f2f5;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s;
+        }
+        .quick-action:hover {
+            background: #e3f2fd;
+            transform: translateY(-2px);
+        }
+        .quick-action .icon { font-size: 28px; display: block; margin-bottom: 8px; }
+        .quick-action .label { font-weight: 500; }
+        .language-switcher {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .language-switcher a {
+            color: #666;
+            text-decoration: none;
+            font-size: 13px;
+            padding: 2px 10px;
+        }
+        .language-switcher a.active {
+            background: #1565c0;
+            color: white;
+            border-radius: 12px;
+        }
+        .empty-message {
+            color: #999;
+            text-align: center;
+            padding: 20px;
+        }
+        @media (max-width: 768px) {
+            .stats { grid-template-columns: 1fr 1fr; }
+            .quick-actions { grid-template-columns: 1fr 1fr; }
+            .header { padding: 15px 20px; flex-direction: column; gap: 10px; text-align: center; }
+            .nav { padding: 10px 20px; justify-content: center; }
+        }
+        @media (max-width: 500px) {
+            .stats { grid-template-columns: 1fr; }
+            .quick-actions { grid-template-columns: 1fr; }
+            table { font-size: 12px; }
+            table th, table td { padding: 8px 5px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>ISG-ISSAD - Super Administrator Dashboard</h1>
+        <div class="user-info">
+            <span>Welcome, {{ session.username }}</span>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </div>
+    
+    <div class="nav">
+        <a href="/super_admin/dashboard" class="active">Dashboard</a>
+        <a href="/super_admin/admins">Manage Administrators</a>
+        <a href="/super_admin/audit_log">Audit Log</a>
+    </div>
+    
+    <div class="container">
+        <div class="language-switcher">
+            <span>Language:</span>
+            <a href="/set_language/en" class="{% if session.lang == 'en' %}active{% endif %}">English</a>
+            <a href="/set_language/fr" class="{% if session.lang == 'fr' %}active{% endif %}">Francais</a>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="number">{{ stats.total_admins }}</div>
+                <div class="label">Total Administrators</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">{{ stats.total_students }}</div>
+                <div class="label">Total Students</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">{{ stats.total_filieres }}</div>
+                <div class="label">Total Programs</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">{{ stats.total_subjects }}</div>
+                <div class="label">Total Subjects</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">{{ stats.total_grades }}</div>
+                <div class="label">Total Grades</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Quick Actions</h2>
+            <div class="quick-actions">
+                <a href="/super_admin/admins" class="quick-action">
+                    <span class="icon">+</span>
+                    <span class="label">Add Administrator</span>
+                </a>
+                <a href="/super_admin/audit_log" class="quick-action">
+                    <span class="icon">L</span>
+                    <span class="label">Audit Log</span>
+                </a>
+                <a href="/admin/dashboard" class="quick-action">
+                    <span class="icon">S</span>
+                    <span class="label">Admin Dashboard</span>
+                </a>
+                <a href="/" class="quick-action">
+                    <span class="icon">H</span>
+                    <span class="label">Home</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Recent Administrators</h2>
+            {% if admins %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>School</th>
+                        <th>Region</th>
+                        <th>Created At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for admin in admins %}
+                    <tr>
+                        <td>{{ admin[0] }}</td>
+                        <td>{{ admin[1] }}</td>
+                        <td>{{ admin[2] }}</td>
+                        <td>{{ admin[3] }}</td>
+                        <td>{{ admin[4] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-message">No records found</p>
+            {% endif %}
+        </div>
+        
+        <div class="section">
+            <h2>Recent Students</h2>
+            {% if recent_students %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Full Name</th>
+                        <th>Class</th>
+                        <th>Created At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in recent_students %}
+                    <tr>
+                        <td>{{ student[0] }}</td>
+                        <td>{{ student[1] }}</td>
+                        <td>{{ student[2] }}</td>
+                        <td>{{ student[4] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="empty-message">No records found</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

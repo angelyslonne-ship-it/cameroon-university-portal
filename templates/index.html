@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISG-ISSAD University Results Portal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a3c1f, #2d5e2e);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            padding: 50px 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        .flag { font-size: 48px; margin-bottom: 10px; }
+        h1 { color: #1a3c1f; font-size: 32px; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 16px; margin-bottom: 35px; }
+        .login-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .option-card {
+            padding: 30px 20px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #333;
+            display: block;
+        }
+        .option-card:hover {
+            border-color: #2d5e2e;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .option-card .icon { font-size: 40px; display: block; margin-bottom: 12px; }
+        .option-card h2 { font-size: 18px; color: #1a3c1f; margin-bottom: 5px; }
+        .option-card p { color: #888; font-size: 13px; }
+        .badge {
+            display: inline-block;
+            background: #2d5e2e;
+            color: white;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            margin-top: 10px;
+        }
+        .language-switcher {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        .language-switcher a {
+            color: #2d5e2e;
+            text-decoration: none;
+            padding: 5px 15px;
+            font-weight: 500;
+        }
+        .language-switcher a.active {
+            background: #2d5e2e;
+            color: white;
+            border-radius: 20px;
+        }
+        .language-switcher .separator { color: #ccc; }
+        footer {
+            margin-top: 25px;
+            color: #999;
+            font-size: 13px;
+        }
+        @media (max-width: 700px) {
+            .login-options { grid-template-columns: 1fr; }
+            .container { padding: 30px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="flag">🇨🇲</div>
+        <h1>ISG-ISSAD University Results Portal</h1>
+        <p class="subtitle">{{ t('select_role') }}</p>
+        
+        <div class="login-options">
+            <a href="/login" class="option-card">
+                <span class="icon">🎓</span>
+                <h2>{{ t('student_login') }}</h2>
+                <p>{{ t('student_name') }}</p>
+                <span class="badge">{{ t('default_password_student') }}</span>
+            </a>
+            <a href="/login" class="option-card">
+                <span class="icon">👨‍🏫</span>
+                <h2>{{ t('admin_login') }}</h2>
+                <p>{{ t('admin_username') }}</p>
+                <span class="badge">{{ t('default_password_admin') }}</span>
+            </a>
+            <a href="/login" class="option-card">
+                <span class="icon">⭐</span>
+                <h2>{{ t('super_admin_login') }}</h2>
+                <p>{{ t('super_admin') }}</p>
+                <span class="badge">{{ t('default_password_super') }}</span>
+            </a>
+        </div>
+        
+        <div class="language-switcher">
+            <span>🌐 {{ t('language') }}: </span>
+            <a href="/set_language/en" class="{% if session.lang == 'en' %}active{% endif %}">{{ t('english') }}</a>
+            <span class="separator">|</span>
+            <a href="/set_language/fr" class="{% if session.lang == 'fr' %}active{% endif %}">{{ t('french') }}</a>
+        </div>
+        
+        <footer>{{ t('copyright') }}</footer>
+    </div>
+</body>
+</html>

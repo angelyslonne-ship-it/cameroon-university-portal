@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'en') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Grades - {{ t('app_title') }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #0d47a1, #1565c0);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .header h1 { font-size: 24px; }
+        .header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .header .user-info span { opacity: 0.9; font-size: 14px; }
+        .header .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        .header .logout-btn:hover { background: rgba(255,255,255,0.3); }
+        .nav {
+            background: white;
+            padding: 12px 40px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        .nav a {
+            color: #333;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            padding: 5px 0;
+            border-bottom: 3px solid transparent;
+            transition: border-color 0.3s;
+        }
+        .nav a:hover, .nav a.active {
+            border-bottom-color: #1565c0;
+            color: #0d47a1;
+        }
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+        .section h2 {
+            color: #0d47a1;
+            font-size: 20px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .form-group { margin: 15px 0; }
+        label { display: block; font-weight: 600; color: #333; margin-bottom: 5px; font-size: 14px; }
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus { border-color: #1565c0; outline: none; }
+        .btn {
+            padding: 12px 30px;
+            background: #1565c0;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn:hover { background: #0d47a1; }
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #2e7d32;
+            margin-bottom: 15px;
+        }
+        .error {
+            background: #ffebee;
+            color: #d32f2f;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #d32f2f;
+            margin-bottom: 15px;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: #1565c0;
+            text-decoration: none;
+        }
+        .back-link:hover { text-decoration: underline; }
+        .language-switcher {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .language-switcher a {
+            color: #666;
+            text-decoration: none;
+            font-size: 13px;
+            padding: 2px 10px;
+        }
+        .language-switcher a.active {
+            background: #1565c0;
+            color: white;
+            border-radius: 12px;
+        }
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .score-hint {
+            color: #666;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .mention-display {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 6px;
+            font-weight: 600;
+            color: #0d47a1;
+            display: none;
+        }
+        @media (max-width: 600px) {
+            .row { grid-template-columns: 1fr; }
+            .header { padding: 15px 20px; flex-direction: column; gap: 10px; text-align: center; }
+            .nav { padding: 10px 20px; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Upload Grades</h1>
+        <div class="user-info">
+            <span>Welcome, {{ session.username }}</span>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </div>
+    
+    <div class="nav">
+        <a href="/admin/dashboard">Dashboard</a>
+        <a href="/admin/students">Manage Students</a>
+        <a href="/admin/filieres">Manage Programs</a>
+        <a href="/admin/subjects">Manage Subjects</a>
+        <a href="/admin/grades" class="active">Upload Grades</a>
+        <a href="/admin/bulk_upload">Bulk Upload</a>
+        <a href="/admin/reports">Reports</a>
+    </div>
+    
+    <div class="container">
+        <div class="language-switcher">
+            <span>Language:</span>
+            <a href="/set_language/en" class="{% if session.lang == 'en' %}active{% endif %}">English</a>
+            <a href="/set_language/fr" class="{% if session.lang == 'fr' %}active{% endif %}">Francais</a>
+        </div>
+        
+        <div class="section">
+            <h2>Upload Grade</h2>
+            
+            {% if success %}
+            <div class="success">{{ success }}</div>
+            {% endif %}
+            {% if error %}
+            <div class="error">{{ error }}</div>
+            {% endif %}
+            
+            <form method="POST">
+                <div class="form-group">
+                    <label>Select Student</label>
+                    <input type="text" name="student_name" list="student_list" placeholder="Student Name" required>
+                    <datalist id="student_list">
+                        {% for student in students %}
+                        <option value="{{ student[1] }}">
+                        {% endfor %}
+                    </datalist>
+                </div>
+                
+                <div class="form-group">
+                    <label>Select Subject</label>
+                    <select name="subject_id" required>
+                        <option value="">Select</option>
+                        {% for subject in subjects %}
+                        <option value="{{ subject[0] }}">{{ subject[1] }} ({{ subject[2] }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="row">
+                    <div class="form-group">
+                        <label>Score (0-20)</label>
+                        <input type="number" name="score" min="0" max="20" step="0.5" placeholder="0-20" required oninput="updateMention(this.value)">
+                        <div class="score-hint">Enter a score between 0 and 20</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Term</label>
+                        <select name="term" required>
+                            <option value="First">First Term</option>
+                            <option value="Second">Second Term</option>
+                            <option value="Third">Third Term</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Year</label>
+                    <input type="number" name="year" value="2024" required>
+                </div>
+                
+                <div id="mentionDisplay" class="mention-display">
+                    Mention: <span id="mentionText"></span>
+                </div>
+                
+                <button type="submit" class="btn">Upload Grade</button>
+            </form>
+        </div>
+        
+        <a href="/admin/dashboard" class="back-link">← Back</a>
+    </div>
+    
+    <script>
+        function updateMention(score) {
+            var display = document.getElementById('mentionDisplay');
+            var text = document.getElementById('mentionText');
+            
+            if (score === '') {
+                display.style.display = 'none';
+                return;
+            }
+            
+            var num = parseFloat(score);
+            if (isNaN(num) || num < 0 || num > 20) {
+                display.style.display = 'none';
+                return;
+            }
+            
+            display.style.display = 'block';
+            
+            if (num >= 16) {
+                text.textContent = 'Tres Bien';
+            } else if (num >= 14) {
+                text.textContent = 'Bien';
+            } else if (num >= 12) {
+                text.textContent = 'Assez Bien';
+            } else if (num >= 10) {
+                text.textContent = 'Passable';
+            } else {
+                text.textContent = 'Ajoure';
+            }
+        }
+    </script>
+</body>
+</html>
